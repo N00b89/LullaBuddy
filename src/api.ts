@@ -1,7 +1,9 @@
 // src/api.ts
 import axios from "axios";
 
-const API_BASE = "/api/users"; // this stays unchanged
+const API_BASE = import.meta.env.PROD
+  ? "https://theta.proto.aalto.fi/api/users"
+  : "/api/users";
 
 const DEVICE_BASE = import.meta.env.PROD
   ? "https://theta.proto.aalto.fi/api/devices"
