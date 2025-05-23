@@ -4,9 +4,10 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/LullaBuddy/',
   plugins: [react(), tailwindcss()],
   server: {
-    host: true,        // 👈 allows access via your local IP
+    host: true,
     port: 5174,
     proxy: {
       '/api': {
