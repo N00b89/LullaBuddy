@@ -1,7 +1,9 @@
 [build]
-  base    = "."            # Your project root
-  publish = "dist"         # This is the output folder created by Vite
   command = "npm run build"
+  publish = "dist"
 
-[build.environment]
-  NODE_VERSION = "18"
+[[redirects]]
+  from = "/api/*"
+  to = "https://theta.proto.aalto.fi/api/:splat"
+  status = 200
+  force = true
