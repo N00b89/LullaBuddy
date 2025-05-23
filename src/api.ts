@@ -1,22 +1,23 @@
 // src/api.ts
 import axios from "axios";
 
-const API_BASE = "/api/users";
+const API_BASE = import.meta.env.PROD
+  ? "https://theta.proto.aalto.fi/api/users"
+  : "/api/users";
+
+const DEVICE_BASE = import.meta.env.PROD
+  ? "https://theta.proto.aalto.fi/api/devices"
+  : "/api/devices";
 
 /**
  * Join a device by ID with the given password.
- * @param deviceId The ID of the device to join.
- * @param password The device’s join password.
- * @returns The API response body.
  */
 export async function joinDevice(deviceId: string, password: string) {
   const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("User is not logged in");
-  }
+  if (!token) throw new Error("User is not logged in");
 
-  const response = await axios.post(
-    `/api/devices/${encodeURIComponent(deviceId)}/join`,
+  const res = await axios.post(
+    `${DEVICE_BASE}/${encodeURIComponent(deviceId)}/join`,
     { password },
     {
       headers: {
@@ -25,8 +26,7 @@ export async function joinDevice(deviceId: string, password: string) {
       },
     }
   );
-
-  return response.data;
+  return res.data;
 }
 
 export async function login(username: string, password: string): Promise<string> {
@@ -38,14 +38,14 @@ export async function register(username: string, password: string): Promise<void
   await axios.post(`${API_BASE}/register`, { username, password });
 }
 
-// New: fetch user devices
 export interface Device {
   id: number;
   name: string;
 }
+
 export async function getDevices(): Promise<Device[]> {
   const token = localStorage.getItem("token");
-  const res = await axios.get(`/api/devices`, {
+  const res = await axios.get(DEVICE_BASE, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -53,15 +53,13 @@ export async function getDevices(): Promise<Device[]> {
   return res.data;
 }
 
-// New: upload a sound file to a specific device
 export async function uploadSound(deviceId: number, file: File): Promise<void> {
   const token = localStorage.getItem("token");
   const formData = new FormData();
-  // Name field matches backend expectation 'soundFile'
   formData.append("soundFile", file);
 
   await axios.post(
-    `/api/devices/${deviceId}/sounds`,
+    `${DEVICE_BASE}/${deviceId}/sounds`,
     formData,
     {
       headers: {
@@ -73,17 +71,16 @@ export async function uploadSound(deviceId: number, file: File): Promise<void> {
 }
 
 export interface Command {
-  type: "warning" | "vibrate";
-  timestamp: string;    // ISO-8601 string
+  type: "warning" | "vibrate" | "silent";
+  timestamp: string;
 }
 
-/** Fetch all commands for a device */
 export async function getDeviceCommands(deviceId: number): Promise<Command[]> {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Not authenticated");
 
   const res = await axios.get<Command[]>(
-    `${API_BASE}/devices/${deviceId}/commands`,
+    `${DEVICE_BASE}/${deviceId}/commands`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
@@ -93,13 +90,13 @@ export async function getDeviceCommands(deviceId: number): Promise<Command[]> {
 
 export async function sendDeviceCommand(
   deviceId: number,
-  type: "warning" | "vibrate"
+  type: "warning" | "vibrate" | "silent" | "notification"
 ): Promise<void> {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Not authenticated");
 
   await axios.post(
-    `/api/devices/${deviceId}/commands`,
+    `${DEVICE_BASE}/${deviceId}/commands`,
     { type },
     {
       headers: {
