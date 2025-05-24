@@ -26,6 +26,10 @@ export async function joinDevice(deviceId: string, password: string) {
       },
     }
   );
+
+  // ✅ Save deviceId for CommandListener
+  localStorage.setItem("deviceId", deviceId);
+
   return res.data;
 }
 
@@ -105,4 +109,15 @@ export async function sendDeviceCommand(
       },
     }
   );
+}
+
+export async function getDeviceIP(deviceId: number): Promise<string> {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Not authenticated");
+
+  const res = await axios.get(
+    `/api/devices/${deviceId}/ip`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return res.data.ip; // assumes `{ ip: "192.168.1.4" }` format
 }
